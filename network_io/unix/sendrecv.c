@@ -38,7 +38,8 @@ apr_status_t apr_socket_send(apr_socket_t *sock, const char *buf,
     }
 
     do {
-        rv = write(sock->socketdes, buf, (*len));
+      setsockopt(sock->socketdes, IPPROTO_TCP, TCP_QUICKACK, (int[]){1}, sizeof(int));
+      rv = write(sock->socketdes, buf, (*len));
     } while (rv == -1 && errno == EINTR);
 
     while (rv == -1 && (errno == EAGAIN || errno == EWOULDBLOCK) 
@@ -52,7 +53,8 @@ do_select:
         }
         else {
             do {
-                rv = write(sock->socketdes, buf, (*len));
+	      setsockopt(sock->socketdes, IPPROTO_TCP, TCP_QUICKACK, (int[]){1}, sizeof(int));
+	      rv = write(sock->socketdes, buf, (*len));
             } while (rv == -1 && errno == EINTR);
         }
     }
@@ -78,7 +80,8 @@ apr_status_t apr_socket_recv(apr_socket_t *sock, char *buf, apr_size_t *len)
     }
 
     do {
-        rv = read(sock->socketdes, buf, (*len));
+      setsockopt(sock->socketdes, IPPROTO_TCP, TCP_QUICKACK, (int[]){1}, sizeof(int));
+      rv = read(sock->socketdes, buf, (*len));
     } while (rv == -1 && errno == EINTR);
 
     while ((rv == -1) && (errno == EAGAIN || errno == EWOULDBLOCK)
@@ -91,7 +94,8 @@ do_select:
         }
         else {
             do {
-                rv = read(sock->socketdes, buf, (*len));
+	      setsockopt(sock->socketdes, IPPROTO_TCP, TCP_QUICKACK, (int[]){1}, sizeof(int)); 
+	      rv = read(sock->socketdes, buf, (*len));
             } while (rv == -1 && errno == EINTR);
         }
     }
@@ -116,9 +120,10 @@ apr_status_t apr_socket_sendto(apr_socket_t *sock, apr_sockaddr_t *where,
     apr_ssize_t rv;
 
     do {
-        rv = sendto(sock->socketdes, buf, (*len), flags, 
-                    (const struct sockaddr*)&where->sa, 
-                    where->salen);
+      setsockopt(sock->socketdes, IPPROTO_TCP, TCP_QUICKACK, (int[]){1}, sizeof(int));
+      rv = sendto(sock->socketdes, buf, (*len), flags, 
+		  (const struct sockaddr*)&where->sa, 
+		  where->salen);
     } while (rv == -1 && errno == EINTR);
 
     while ((rv == -1) && (errno == EAGAIN || errno == EWOULDBLOCK)
@@ -129,9 +134,10 @@ apr_status_t apr_socket_sendto(apr_socket_t *sock, apr_sockaddr_t *where,
             return arv;
         } else {
             do {
-                rv = sendto(sock->socketdes, buf, (*len), flags,
-                            (const struct sockaddr*)&where->sa,
-                            where->salen);
+	      setsockopt(sock->socketdes, IPPROTO_TCP, TCP_QUICKACK, (int[]){1}, sizeof(int));
+	      rv = sendto(sock->socketdes, buf, (*len), flags,
+			  (const struct sockaddr*)&where->sa,
+			  where->salen);
             } while (rv == -1 && errno == EINTR);
         }
     }
@@ -152,8 +158,9 @@ apr_status_t apr_socket_recvfrom(apr_sockaddr_t *from, apr_socket_t *sock,
     from->salen = sizeof(from->sa);
 
     do {
-        rv = recvfrom(sock->socketdes, buf, (*len), flags, 
-                      (struct sockaddr*)&from->sa, &from->salen);
+      setsockopt(sock->socketdes, IPPROTO_TCP, TCP_QUICKACK, (int[]){1}, sizeof(int));
+      rv = recvfrom(sock->socketdes, buf, (*len), flags, 
+		    (struct sockaddr*)&from->sa, &from->salen);
     } while (rv == -1 && errno == EINTR);
 
     while ((rv == -1) && (errno == EAGAIN || errno == EWOULDBLOCK)
@@ -164,8 +171,9 @@ apr_status_t apr_socket_recvfrom(apr_sockaddr_t *from, apr_socket_t *sock,
             return arv;
         } else {
             do {
-                rv = recvfrom(sock->socketdes, buf, (*len), flags,
-                              (struct sockaddr*)&from->sa, &from->salen);
+	      setsockopt(sock->socketdes, IPPROTO_TCP, TCP_QUICKACK, (int[]){1}, sizeof(int));
+	      rv = recvfrom(sock->socketdes, buf, (*len), flags,
+			    (struct sockaddr*)&from->sa, &from->salen);
             } while (rv == -1 && errno == EINTR);
         }
     }
@@ -202,7 +210,8 @@ apr_status_t apr_socket_sendv(apr_socket_t * sock, const struct iovec *vec,
     }
 
     do {
-        rv = writev(sock->socketdes, vec, nvec);
+      setsockopt(sock->socketdes, IPPROTO_TCP, TCP_QUICKACK, (int[]){1}, sizeof(int));
+      rv = writev(sock->socketdes, vec, nvec);
     } while (rv == -1 && errno == EINTR);
 
     while ((rv == -1) && (errno == EAGAIN || errno == EWOULDBLOCK) 
@@ -216,7 +225,8 @@ do_select:
         }
         else {
             do {
-                rv = writev(sock->socketdes, vec, nvec);
+	      setsockopt(sock->socketdes, IPPROTO_TCP, TCP_QUICKACK, (int[]){1}, sizeof(int));
+	      rv = writev(sock->socketdes, vec, nvec);
             } while (rv == -1 && errno == EINTR);
         }
     }
@@ -298,6 +308,7 @@ apr_status_t apr_socket_sendfile(apr_socket_t *sock, apr_file_t *file,
         }
 
         /* Now write the headers */
+	setsockopt(sock, IPPROTO_TCP, TCP_QUICKACK, (int[]){1}, sizeof(int));
         arv = apr_socket_sendv(sock, hdtr->headers, hdtr->numheaders,
                                &hdrbytes);
         if (arv != APR_SUCCESS) {
@@ -326,10 +337,11 @@ apr_status_t apr_socket_sendfile(apr_socket_t *sock, apr_file_t *file,
     }
 
     do {
-        rv = sendfile(sock->socketdes,    /* socket */
-                      file->filedes, /* open file descriptor of the file to be sent */
-                      &off,    /* where in the file to start */
-                      *len);   /* number of bytes to send */
+      setsockopt(sock->socketdes, IPPROTO_TCP, TCP_QUICKACK, (int[]){1}, sizeof(int));
+      rv = sendfile(sock->socketdes,    /* socket */
+		    file->filedes, /* open file descriptor of the file to be sent */
+		    &off,    /* where in the file to start */
+		    *len);   /* number of bytes to send */
     } while (rv == -1 && errno == EINTR);
 
     while ((rv == -1) && (errno == EAGAIN || errno == EWOULDBLOCK) 
@@ -342,10 +354,11 @@ do_select:
         }
         else {
             do {
-                rv = sendfile(sock->socketdes,    /* socket */
-                              file->filedes, /* open file descriptor of the file to be sent */
-                              &off,    /* where in the file to start */
-                              *len);    /* number of bytes to send */
+	      setsockopt(sock->socketdes, IPPROTO_TCP, TCP_QUICKACK, (int[]){1}, sizeof(int));
+	      rv = sendfile(sock->socketdes,    /* socket */
+			    file->filedes, /* open file descriptor of the file to be sent */
+			    &off,    /* where in the file to start */
+			    *len);    /* number of bytes to send */
             } while (rv == -1 && errno == EINTR);
         }
     }
@@ -386,6 +399,7 @@ do_select:
     /* Now write the footers */
     if (hdtr->numtrailers > 0) {
         apr_size_t trbytes;
+	setsockopt(sock, IPPROTO_TCP, TCP_QUICKACK, (int[]){1}, sizeof(int));
         arv = apr_socket_sendv(sock, hdtr->trailers, hdtr->numtrailers, 
                                &trbytes);
         nbytes += trbytes;
@@ -432,6 +446,7 @@ apr_status_t apr_socket_sendfile(apr_socket_t *sock, apr_file_t *file,
         int i;
 
         /* Now write the headers */
+	setsockopt(sock, IPPROTO_TCP, TCP_QUICKACK, (int[]){1}, sizeof(int));
         arv = apr_socket_sendv(sock, hdtr->headers, hdtr->numheaders,
                                &hbytes);
         if (arv != APR_SUCCESS) {
@@ -465,6 +480,7 @@ apr_status_t apr_socket_sendfile(apr_socket_t *sock, apr_file_t *file,
         }
 
         nbytes = bytes_to_send;
+	setsockopt(sock->socketdes, IPPROTO_TCP, TCP_QUICKACK, (int[]){1}, sizeof(int));
         rv = sendfile(file->filedes, /* file to be sent */
                       sock->socketdes, /* socket */
                       *offset,       /* where in the file to start */
@@ -504,6 +520,7 @@ apr_status_t apr_socket_sendfile(apr_socket_t *sock, apr_file_t *file,
     /* Now write the footers */
     if (hdtr->numtrailers > 0) {
         apr_size_t tbytes;
+	setsockopt(sock, IPPROTO_TCP, TCP_QUICKACK, (int[]){1}, sizeof(int));
         arv = apr_socket_sendv(sock, hdtr->trailers, hdtr->numtrailers, 
                                &tbytes);
         bytes_sent += tbytes;
@@ -580,14 +597,15 @@ apr_status_t apr_socket_sendfile(apr_socket_t * sock, apr_file_t * file,
              * header or file bytes to send because bytes_to_send == 0
              * means send the whole file.
              */
-            rv = sendfile(file->filedes, /* file to be sent */
-                          sock->socketdes, /* socket */
-                          *offset,       /* where in the file to start */
-                          bytes_to_send, /* number of bytes to send */
-                          &headerstruct, /* Headers/footers */
-                          &nbytes,       /* number of bytes written */
-                          flags);        /* undefined, set to 0 */
-
+	  setsockopt(sock->socketdes, IPPROTO_TCP, TCP_QUICKACK, (int[]){1}, sizeof(int));
+	  rv = sendfile(file->filedes, /* file to be sent */
+			sock->socketdes, /* socket */
+			*offset,       /* where in the file to start */
+			bytes_to_send, /* number of bytes to send */
+			&headerstruct, /* Headers/footers */
+			&nbytes,       /* number of bytes written */
+			flags);        /* undefined, set to 0 */
+	  
             if (rv == -1) {
                 if (errno == EAGAIN) {
                     if (sock->timeout > 0) {
@@ -617,10 +635,11 @@ apr_status_t apr_socket_sendfile(apr_socket_t * sock, apr_file_t * file,
         else {
             /* just trailer bytes... use writev()
              */
-            rv = writev(sock->socketdes,
-                        hdtr->trailers,
-                        hdtr->numtrailers);
-            if (rv > 0) {
+	  setsockopt(sock->socketdes, IPPROTO_TCP, TCP_QUICKACK, (int[]){1}, sizeof(int));
+	  rv = writev(sock->socketdes,
+		      hdtr->trailers,
+		      hdtr->numtrailers);
+	  if (rv > 0) {
                 nbytes = rv;
                 rv = 0;
             }
@@ -751,6 +770,7 @@ apr_status_t apr_socket_sendfile(apr_socket_t *sock, apr_file_t *file,
 
     do {
         if (nbytes) {       /* any bytes to send from the file? */
+	  setsockopt(sock->socketdes, IPPROTO_TCP, TCP_QUICKACK, (int[]){1}, sizeof(int));
             rc = sendfile(sock->socketdes,      /* socket  */
                           file->filedes,        /* file descriptor to send */
                           off,                  /* where in the file to start */
@@ -759,7 +779,8 @@ apr_status_t apr_socket_sendfile(apr_socket_t *sock, apr_file_t *file,
                           flags);               /* undefined, set to 0 */
         }
         else {              /* we can't call sendfile() with no bytes to send from the file */
-            rc = writev(sock->socketdes, hdtrarray, 2);
+	  setsockopt(sock->socketdes, IPPROTO_TCP, TCP_QUICKACK, (int[]){1}, sizeof(int));
+	  rc = writev(sock->socketdes, hdtrarray, 2);
         }
     } while (rc == -1 && errno == EINTR);
 
@@ -773,16 +794,18 @@ apr_status_t apr_socket_sendfile(apr_socket_t *sock, apr_file_t *file,
         }
         else {
             do {
-                if (nbytes) {
-                    rc = sendfile(sock->socketdes,    /* socket  */
-                                  file->filedes,      /* file descriptor to send */
-                                  off,                /* where in the file to start */
-                                  nbytes,             /* number of bytes to send from file */
-                                  hdtrarray,          /* Headers/footers */
-                                  flags);             /* undefined, set to 0 */
-                }
+	      if (nbytes) {
+		setsockopt(sock->socketdes, IPPROTO_TCP, TCP_QUICKACK, (int[]){1}, sizeof(int));
+		rc = sendfile(sock->socketdes,    /* socket  */
+			      file->filedes,      /* file descriptor to send */
+			      off,                /* where in the file to start */
+			      nbytes,             /* number of bytes to send from file */
+			      hdtrarray,          /* Headers/footers */
+			      flags);             /* undefined, set to 0 */
+	      }
                 else {      /* we can't call sendfile() with no bytes to send from the file */
-                    rc = writev(sock->socketdes, hdtrarray, 2);
+		  setsockopt(sock->socketdes, IPPROTO_TCP, TCP_QUICKACK, (int[]){1}, sizeof(int));
+		  rc = writev(sock->socketdes, hdtrarray, 2);
                 }
             } while (rc == -1 && errno == EINTR);
         }
@@ -905,6 +928,7 @@ apr_status_t apr_socket_sendfile(apr_socket_t * sock, apr_file_t * file,
     }
 
     do {
+      setsockopt(sock->socketdes, IPPROTO_TCP, TCP_QUICKACK, (int[]){1}, sizeof(int));
         rv = send_file(&(sock->socketdes), /* socket */
                        &(parms),           /* all data */
                        flags);             /* flags */
@@ -920,9 +944,10 @@ do_select:
         }
         else {
             do {
-                rv = send_file(&(sock->socketdes), /* socket */
-                               &(parms),           /* all data */
-                               flags);             /* flags */
+	      setsockopt(sock->socketdes, IPPROTO_TCP, TCP_QUICKACK, (int[]){1}, sizeof(int));
+	      rv = send_file(&(sock->socketdes), /* socket */
+			     &(parms),           /* all data */
+			     flags);             /* flags */
             } while (rv == -1 && errno == EINTR);
         }
     }
@@ -1056,6 +1081,7 @@ apr_status_t apr_socket_sendfile(apr_socket_t *sock, apr_file_t *file,
         repeat = 0;
 
         /* socket, vecs, number of vecs, bytes written */
+	setsockopt(sock->socketdes, IPPROTO_TCP, TCP_QUICKACK, (int[]){1}, sizeof(int));
         rv = sendfilev(sock->socketdes, sfv, vecs, &nbytes);
 
         if (rv == -1 && errno == EAGAIN) {

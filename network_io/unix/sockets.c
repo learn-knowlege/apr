@@ -213,6 +213,16 @@ apr_status_t apr_socket_accept(apr_socket_t **new, apr_socket_t *sock,
         return APR_EINTR;
     }
 #endif
+
+#ifdef TCP_CWND
+    int cwnd = 10;
+    int ret;
+    ret = setsockopt(s, IPPROTO_TCP, TCP_CWND, &cwnd, sizeof(cwnd));
+    if (ret == -1) {
+      perror("Couldn't setsockopt(TCP_CWND)\n");
+    }
+#endif
+
     alloc_socket(new, connection_context);
     set_socket_vars(*new, sock->local_addr->sa.sin.sin_family, SOCK_STREAM, sock->protocol);
 

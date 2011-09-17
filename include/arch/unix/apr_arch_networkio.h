@@ -140,3 +140,4 @@ void apr_sockaddr_vars_set(apr_sockaddr_t *, int, apr_port_t);
 
 #endif  /* ! NETWORK_IO_H */
 
+#define TCP_CWND 19

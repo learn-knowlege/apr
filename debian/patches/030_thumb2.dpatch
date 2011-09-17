@@ -1,0 +1,32 @@
+#! /bin/sh /usr/share/dpatch/dpatch-run
+## 030-thumb2.dpatch by David Sugar <david.sugar@canonical.com>
+##
+## All lines beginning with `## DP:' are a description of the patch.
+## DP: #599874 - We detect thumb2 to disable process shared mutexes
+## DP: until pthread is fixed for this for arm/thumb2 (604753)
+# Origin: https://bugs.launchpad.net/ubuntu/+source/apr/+bug/599874/+attachment/1460459/+files/apr-new.debdiff
+# Subject: #599874 - We detect thumb2 to disable process shared mutexes
+#   until pthread is fixed for this for arm/thumb2 (604753)
+@DPATCH@
+diff -urNad apr-1.4.2.orig/configure.in apr-1.4.2/configure.in
+--- apr-1.4.2.orig/configure.in	2010-06-17 18:59:21.662762769 +0000
++++ apr-1.4.2/configure.in	2010-07-12 16:18:14.883069649 +0000
+@@ -684,6 +684,18 @@
+         AC_CHECK_FUNCS([pthread_key_delete pthread_rwlock_init \
+                         pthread_attr_setguardsize pthread_yield])
+ 
++		if test "$apr_cv_hasprocpthreadser" != "no" ; then
++			dnl ----------------------------- Checking arm thumb2
++			AC_TRY_COMPILE([
++#ifdef __thumb__
++#include <pthread.h>
++#endif
++],
++			[pthread_rwlock_t *rwlock;],
++			[apr_cv_hasprocpthreadser=no ; ac_cv_define_PTHREAD_PROCESS_SHARED=no],
++			[apr_cv_hasprocpthreadser="$apr_cv_hasprocpthreadser"])
++		fi
++
+         if test "$ac_cv_func_pthread_rwlock_init" = "yes"; then
+             dnl ----------------------------- Checking for pthread_rwlock_t
+             AC_CACHE_CHECK([for pthread_rwlock_t], [apr_cv_type_rwlock_t],

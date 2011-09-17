@@ -1,3 +1,10 @@
+apr (1.3.8-1ubuntu0.4) unstable; urgency=low
+
+  * TCP_QUICKACK
+  * initcwnd
+
+ -- Jason Cook <jason@fastly.com>  Fri, 16 Sep 2011 17:54:09 -0700
+
 apr (1.3.8-1ubuntu0.3) lucid-security; urgency=low
 
   * SECURITY UPDATE: denial of service in apr_fnmatch exploitable via
